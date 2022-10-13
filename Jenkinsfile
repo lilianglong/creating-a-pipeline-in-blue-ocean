@@ -12,14 +12,27 @@ pipeline {
         sh 'npm install'
       }
     }
+
     stage('Test') {
-      environment {
-        CI = 'true'
-      }
-      steps {
-        sh './jenkins/scripts/test.sh'
+      parallel {
+        stage('Test') {
+          environment {
+            CI = 'true'
+          }
+          steps {
+            sh './jenkins/scripts/test.sh'
+          }
+        }
+
+        stage('') {
+          steps {
+            huaweicloudOBSUpload(bucketName: 'obs-jenkins', endpoint: 'obs.cn-south-1.myhuaweicloud.com', localPath: '/', remotePath: '/jenkins/blueocean', maxRetries: '3', accessKeyId: 'TIFED7B7YLSOB3DRQIS8', secretAccessKey: '8UXZc5xc7AqXcnQ8NWNF5q1Cm6RWuPncevdqXCUm')
+          }
+        }
+
       }
     }
+
     stage('Deliver') {
       steps {
         sh './jenkins/scripts/deliver.sh'
@@ -27,5 +40,6 @@ pipeline {
         sh './jenkins/scripts/kill.sh'
       }
     }
+
   }
 }
